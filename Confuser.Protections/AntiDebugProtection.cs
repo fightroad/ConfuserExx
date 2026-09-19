@@ -7,6 +7,7 @@ using Confuser.Core.Services;
 using Confuser.Renamer;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using Microsoft.Extensions.Logging;
 
 namespace Confuser.Protections {
 	[BeforeProtection("Ki.ControlFlow")]
@@ -61,6 +62,16 @@ namespace Confuser.Protections {
 
 				foreach (ModuleDef module in parameters.Targets.OfType<ModuleDef>()) {
 					AntiMode mode = parameters.GetParameter(context, module, "mode", AntiMode.Safe);
+
+					if (CoreClrSupport.IsNetCoreApp(module)) {
+						if (mode == AntiMode.Antinet) {
+							context.Logger.LogError("Anti-debug mode 'antinet' is not supported on .NET Core / .NET 5+ (CoreCLR). Use mode 'safe'.");
+							throw new ConfuserException();
+						}
+
+						if (mode == AntiMode.Win32)
+							context.Logger.LogWarning("Anti-debug mode 'win32' is best-effort on .NET Core / .NET 5+ and is only applicable on Windows. Prefer mode 'safe'.");
+					}
 
 					TypeDef rtType;
 					TypeDef attr = null;

@@ -38,6 +38,8 @@ Detects and prevents debugger and profiler attachment at runtime. Injects runtim
 |------|--------|---------|-------------|
 | `mode` | `safe`, `win32`, `antinet` | `safe` | Detection method. `safe` uses managed APIs, `win32` uses native API calls, `antinet` uses anti-.NET-profiler techniques. |
 
+**`.NET` / CoreCLR:** `safe` is supported on .NET 8 (and other .NET Core / .NET 5+ apps). `win32` is Windows-only and best-effort. `antinet` targets `clr.dll` and is rejected at obfuscation time on .NET Core / .NET 5+.
+
 ```xml
 <protection id="anti debug">
   <argument name="mode" value="antinet" />
@@ -86,6 +88,8 @@ Encrypts method bodies at build time and decrypts them at runtime via a JIT hook
 |------|--------|---------|-------------|
 | `mode` | `jit`, `native` | `jit` | `jit` hooks the JIT compiler to decrypt methods on demand. `native` pre-compiles methods to native code. |
 | `key` | `normal`, `dynamic` | `normal` | Key derivation mode. `dynamic` derives the key from the assembly contents for stronger tamper detection. |
+
+**`.NET` / CoreCLR:** `normal` (the default) is supported on .NET 8 when you obfuscate the managed DLL. `jit` hooks the Framework JIT and is rejected at obfuscation time on .NET Core / .NET 5+. Single-file publish and Native AOT are not supported.
 
 ```xml
 <protection id="anti tamper">

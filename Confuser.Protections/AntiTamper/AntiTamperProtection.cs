@@ -4,6 +4,7 @@ using Confuser.Core;
 using Confuser.Protections.AntiTamper;
 using dnlib.DotNet;
 using dnlib.DotNet.Writer;
+using Microsoft.Extensions.Logging;
 
 namespace Confuser.Protections {
 	public interface IAntiTamperService {
@@ -87,6 +88,11 @@ namespace Confuser.Protections {
 					return;
 
 				Mode mode = parameters.GetParameter(context, context.CurrentModule, "mode", Mode.Normal);
+				if (mode == Mode.JIT && CoreClrSupport.IsNetCoreApp(context.CurrentModule)) {
+					context.Logger.LogError("Anti-tamper mode 'jit' is not supported on .NET Core / .NET 5+ (CoreCLR). Use mode 'normal'.");
+					throw new ConfuserException();
+				}
+
 				IModeHandler modeHandler;
 				switch (mode) {
 					case Mode.Normal:

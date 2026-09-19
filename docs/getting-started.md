@@ -49,12 +49,29 @@ The CLI reads a [project file](ProjectFormat.md) (`.crproj`) that describes whic
 
 ```xml
 <project outputDir=".\Confused" baseDir=".\bin\Release\net8.0">
-  <rule preset="normal" pattern="true" />
-  <module path="MyApp.exe" />
+  <rule pattern="true" inherit="false">
+    <protection id="ctrl flow" />
+    <protection id="constants" />
+    <protection id="anti ildasm" />
+    <protection id="ref proxy">
+      <argument name="mode" value="mild" />
+    </protection>
+    <protection id="anti debug">
+      <argument name="mode" value="safe" />
+    </protection>
+    <protection id="anti tamper">
+      <argument name="mode" value="normal" />
+    </protection>
+  </rule>
+  <module path="MyApp.dll" />
 </project>
 ```
 
-This applies the `normal` preset to `MyApp.exe` and writes the output to `.\Confused`.
+This applies those protections to `MyApp.dll` and writes the output to `.\Confused`.
+
+SDK-style apps (.NET 6/8/10) produce a native apphost `MyApp.exe` plus a managed `MyApp.dll`. Obfuscate the **DLL**, then copy it back next to the apphost, `MyApp.runtimeconfig.json`, and `MyApp.deps.json`. Do not protect the apphost executable.
+
+On .NET 8, `anti debug` mode `safe` and `anti tamper` mode `normal` are supported. `antinet` and anti-tamper `jit` are refused during obfuscation. `win32` anti-debug is Windows-only and best-effort.
 
 ### Overriding Output Directory
 

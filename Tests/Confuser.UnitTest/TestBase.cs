@@ -32,10 +32,10 @@ namespace Confuser.UnitTest {
 		protected Task Run(string inputFileName, string[] expectedOutput, IEnumerable<SettingItem<Protection>> protections,
 			string outputDirSuffix = "", Action<string> outputAction = null, SettingItem<Packer> packer = null,
 			Action<ProjectModule> projectModuleAction = null, Func<string, Task> postProcessAction = null,
-			string processArguments = null) =>
+			string processArguments = null, bool checkOutput = true) =>
 
 			Run(new[] { inputFileName }, expectedOutput, protections, outputDirSuffix, outputAction, packer,
-				projectModuleAction, postProcessAction, processArguments: processArguments);
+				projectModuleAction, postProcessAction, processArguments: processArguments, checkOutput: checkOutput);
 
 		protected Task Run(string[] inputFileNames, string[] expectedOutput, SettingItem<Protection> protection,
 			string outputDirSuffix = "", Action<string> outputAction = null, SettingItem<Packer> packer = null,
