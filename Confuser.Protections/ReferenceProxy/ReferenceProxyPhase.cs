@@ -8,6 +8,7 @@ using Confuser.Renamer;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
+using Microsoft.Extensions.Logging;
 
 namespace Confuser.Protections.ReferenceProxy {
 	internal class ReferenceProxyPhase : ProtectionPhase {
@@ -102,10 +103,18 @@ namespace Confuser.Protections.ReferenceProxy {
 			RandomGenerator random = context.Registry.GetService<IRandomService>().GetRandomGenerator(ReferenceProxyProtection._FullId);
 
 			var store = new RPStore { random = random };
+			bool isNetCoreApp = CoreClrSupport.IsNetCoreApp(context.CurrentModule);
 
 			foreach (MethodDef method in parameters.Targets.OfType<MethodDef>().WithProgress(context.ProgressReporter))
 				if (method.HasBody && method.Body.Instructions.Count > 0) {
-					ProcessMethod(ParseParameters(method, context, parameters, store));
+					var rpContext = ParseParameters(method, context, parameters, store);
+					if (isNetCoreApp && rpContext.Mode == Mode.Strong) {
+						context.Logger.LogError(
+							"Reference proxy mode 'strong' is not supported on .NET Core / .NET 5+ (uses DynamicMethod.GetDynamicILInfo). Use mode 'mild'.");
+						throw new ConfuserException();
+					}
+
+					ProcessMethod(rpContext);
 					context.CheckCancellation();
 				}
 

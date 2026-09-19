@@ -77,5 +77,44 @@ namespace CrossFramework.Test {
 			Assert.Contains("jit", ex.ToString(), StringComparison.OrdinalIgnoreCase);
 			Assert.Contains("not supported", ex.ToString(), StringComparison.OrdinalIgnoreCase);
 		}
+
+		[Fact]
+		[Trait("Category", "CrossFramework")]
+		[Trait("Protection", "ref proxy")]
+		[Trait("TFM", "net8.0")]
+		public Task RefProxy_Mild_Net8() =>
+			Run("CrossFramework.Console.Net8.dll",
+				null,
+				new SettingItem<Protection>("ref proxy") { { "mode", "mild" } },
+				outputDirSuffix: "-net8-refproxy-mild",
+				checkOutput: false);
+
+		[Fact]
+		[Trait("Category", "CrossFramework")]
+		[Trait("Protection", "ref proxy")]
+		[Trait("TFM", "net8.0")]
+		public async Task RefProxy_Strong_Net8_IsRejected() {
+			var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
+				Run("CrossFramework.Console.Net8.dll",
+					null,
+					new SettingItem<Protection>("ref proxy") { { "mode", "strong" } },
+					outputDirSuffix: "-net8-refproxy-strong",
+					checkOutput: false));
+
+			Assert.Contains("strong", ex.ToString(), StringComparison.OrdinalIgnoreCase);
+			Assert.Contains("not supported", ex.ToString(), StringComparison.OrdinalIgnoreCase);
+		}
+
+		[Fact]
+		[Trait("Category", "CrossFramework")]
+		[Trait("Packer", "compressor")]
+		[Trait("TFM", "net8.0")]
+		public Task Compressor_AutoCompat_Net8() =>
+			Run("CrossFramework.Console.Net8.dll",
+				null,
+				NoProtections,
+				outputDirSuffix: "-net8-compressor-autocompat",
+				packer: new SettingItem<Packer>("compressor"),
+				checkOutput: false);
 	}
 }

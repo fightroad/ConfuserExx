@@ -37,10 +37,17 @@ namespace Confuser.Protections.Compress {
 			}
 
 			if (isExe) {
+				bool compat = parameters.GetParameter(context, null, "compat", false);
+				if (!compat && CoreClrSupport.IsNetCoreApp(context.CurrentModule)) {
+					context.Logger.LogWarning(
+						"Compressor mode without 'compat' uses Assembly.LoadModule, which is not supported on .NET Core / .NET 5+. Enabling compat=true automatically.");
+					compat = true;
+				}
+
 				var ctx = new CompressorContext {
 					ModuleIndex = context.CurrentModuleIndex,
 					Assembly = context.CurrentModule.Assembly,
-					CompatMode = parameters.GetParameter(context, null, "compat", false)
+					CompatMode = compat
 				};
 				context.Annotations.Set(context, Compressor.ContextKey, ctx);
 

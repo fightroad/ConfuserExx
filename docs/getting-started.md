@@ -71,7 +71,7 @@ This applies those protections to `MyApp.dll` and writes the output to `.\Confus
 
 SDK-style apps (.NET 6/8/10) produce a native apphost `MyApp.exe` plus a managed `MyApp.dll`. Obfuscate the **DLL**, then copy it back next to the apphost, `MyApp.runtimeconfig.json`, and `MyApp.deps.json`. Do not protect the apphost executable.
 
-On .NET 8, `anti debug` mode `safe` and `anti tamper` mode `normal` are supported. `antinet` and anti-tamper `jit` are refused during obfuscation. `win32` anti-debug is Windows-only and best-effort.
+On .NET 8, `anti debug` mode `safe` and `anti tamper` mode `normal` are supported. `antinet`, anti-tamper `jit`, and `ref proxy` mode `strong` are refused during obfuscation. Compressor packer enables `compat=true` automatically. Prefer `ref proxy` mode `mild`. `win32` anti-debug is Windows-only and best-effort.
 
 ### Overriding Output Directory
 

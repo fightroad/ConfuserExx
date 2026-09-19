@@ -86,14 +86,14 @@ Encrypts method bodies at build time and decrypts them at runtime via a JIT hook
 
 | Name | Values | Default | Description |
 |------|--------|---------|-------------|
-| `mode` | `jit`, `native` | `jit` | `jit` hooks the JIT compiler to decrypt methods on demand. `native` pre-compiles methods to native code. |
+| `mode` | `normal`, `anti`, `jit` | `normal` | `normal` decrypts method bodies at runtime. `anti` adds extra debugger checks. `jit` hooks the Framework JIT. |
 | `key` | `normal`, `dynamic` | `normal` | Key derivation mode. `dynamic` derives the key from the assembly contents for stronger tamper detection. |
 
 **`.NET` / CoreCLR:** `normal` (the default) is supported on .NET 8 when you obfuscate the managed DLL. `jit` hooks the Framework JIT and is rejected at obfuscation time on .NET Core / .NET 5+. Single-file publish and Native AOT are not supported.
 
 ```xml
 <protection id="anti tamper">
-  <argument name="mode" value="jit" />
+  <argument name="mode" value="normal" />
   <argument name="key" value="dynamic" />
 </protection>
 ```
@@ -187,15 +187,17 @@ Replaces direct method and field references with calls through generated proxy d
 
 | Name | Values | Default | Description |
 |------|--------|---------|-------------|
-| `mode` | `mild`, `strong`, `ftn` | `mild` | Proxy generation mode. `strong` adds additional indirection. `ftn` uses function pointer-based proxies. |
+| `mode` | `mild`, `strong` | `mild` | Proxy generation mode. `strong` adds additional indirection via dynamic methods. |
 | `encoding` | `normal`, `expression`, `x86` | `normal` | How proxy targets are encoded. |
 | `internal` | `true`, `false` | `false` | Whether to proxy internal (same-assembly) calls. |
 | `typeErasure` | `true`, `false` | `false` | Erase type information in proxy signatures. |
 | `depth` | integer | `3` | Proxy chain depth (higher = more indirection). |
 
+**`.NET` / CoreCLR:** Use `mild` (the default). `strong` relies on `DynamicMethod.GetDynamicILInfo`, which is not supported on CoreCLR and is rejected at obfuscation time.
+
 ```xml
 <protection id="ref proxy">
-  <argument name="mode" value="strong" />
+  <argument name="mode" value="mild" />
   <argument name="encoding" value="expression" />
 </protection>
 ```
@@ -266,7 +268,7 @@ No configurable options.
 
 **ID:** `compressor`
 
-Compresses the entire output assembly and wraps it in a native stub that decompresses at startup. Reduces file size and adds another layer of obfuscation.
+Compresses the entire output assembly and wraps it in a stub that decompresses at startup. Reduces file size and adds another layer of obfuscation.
 
 **Options:**
 
@@ -274,10 +276,14 @@ Compresses the entire output assembly and wraps it in a native stub that decompr
 |------|--------|---------|-------------|
 | `mode` | `normal`, `dynamic` | `normal` | Stub type. `dynamic` generates a unique decompression routine. |
 | `key` | `normal`, `dynamic` | `normal` | Compression key derivation. |
+| `compat` | `true`, `false` | `false` | Compatibility stub using `Assembly.Load` instead of `Assembly.LoadModule`. |
+
+**`.NET` / CoreCLR:** Non-compat mode uses `Assembly.LoadModule`, which is not supported on CoreCLR. On .NET Core / .NET 5+ targets, `compat=true` is enabled automatically.
 
 ```xml
 <packer id="compressor">
   <argument name="mode" value="dynamic" />
+  <argument name="compat" value="true" />
 </packer>
 ```
 
